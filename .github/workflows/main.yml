@@ -1,36 +1,36 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
-name: Node.js Package
-
+name: Build app and deploy to Tencent
 on:
-  release:
-    types: [created]
-
+  #监听push操作
+  push:
+    branches:
+      # mian分支，你也可以改成其他分支
+      - main
 jobs:
+  # 任务ID
   build:
+    # 运行环境
     runs-on: ubuntu-latest
+    # 步骤
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm test
-
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          registry-url: https://npm.pkg.github.com/
-      - run: npm ci
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    # 使用别人的action
+    - uses: actions/checkout@v2
+    # 步骤名称
+    - name: yarn install
+      # 步骤执行指令
+      run: yarn install
+    - name: yarn run build
+      run: yarn run build
+    # 命名这个任务为发布Deploy
+    - name: Deploy
+      # 因为构建之后，需要把代码上传到服务器上，所以需要连接到ssh，并且做一个拷贝操作
+      uses: cross-the-world/scp-pipeline@master
+      env:
+        WELCOME: "ssh scp ssh pipelines"
+        LASTSSH: "Doing something after copying"
+      with:
+        host: ${{ secrets.USER_HOST }}
+        user: ${{ secrets.USER_NAME }}
+        pass: ${{ secrets.USER_PASS }}
+        connect_timeout: 10s
+        local: './dist/*'
+        remote: /Users/Administrator/Desktop/work/nginx/html
