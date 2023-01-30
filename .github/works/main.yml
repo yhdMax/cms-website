@@ -33,4 +33,4 @@ jobs:
         pass: ${{ secrets.USER_PASS }}
         connect_timeout: 10s
         local: './dist/*'
-        remote: /Users/Administrator/Desktop/WORK/nginx/html
+        remote: /Users/Administrator/Desktop/work/nginx/html
