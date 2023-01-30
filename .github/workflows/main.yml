@@ -1,34 +1,32 @@
-name: Build app and deploy to Tencent
-on:
-  #监听push操作
-  push:
-    branches:
-      # mian分支，你也可以改成其他分支
-      - main
+name: build
+on: 
+  push: 
+    branches: 
+      - main # 这里表示push到main分支就会触发流程
 jobs:
-  # 任务ID
-  build:
-    # 运行环境
-    runs-on: ubuntu-latest
-    # 步骤
+  build-and-deploy:
+    runs-on: ubuntu-20.04
     steps:
-    # 使用别人的action
-    - uses: actions/checkout@v2
-    # 步骤名称
-    - name: yarn build
-      # 步骤执行指令
-      run: yarn install &&  yarn run build
-    # 命名这个任务为发布Deploy
-    - name: Deploy
-      # 因为构建之后，需要把代码上传到服务器上，所以需要连接到ssh，并且做一个拷贝操作
-      uses: cross-the-world/scp-pipeline@master
-      env:
-        WELCOME: "ssh scp ssh pipelines"
-        LASTSSH: "Doing something after copying"
-      with:
-        host: 47.93.51.72
-        user: root
-        pass: yhd_max123
-        connect_timeout: 10s
-        local: './dist/*'
-        remote: /work/www/dist
+      # 这是github官方的一个action，用于clone该仓库的源码到工作流中，
+      - name: Checkout ?️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Build
+        run: |
+          yarn install  # 安装依赖
+          yarn run build  # 执行打包
+  
+      # 连接到ssh，并且做一个拷贝操作的action
+      - name: Deploy ?
+        uses: cross-the-world/scp-pipeline@master
+        env:
+          WELCOME: "ssh scp ssh pipelines"
+          LASTSSH: "Doing something after copying"
+        with:
+         host: ${{ secrets.DR_HOST }}
+         user: ${{ secrets.DR_USER }}
+         pass: ${{ secrets.DR_PASS }}
+         connect_timeout: 10s
+         local: '/dist/*' # 这里是下一步要创建的vue项目构建完成后的静态资源路径
+         remote: /www/actionTest # 这里是 step1 中，在服务器上创建用于存放静态资源的文件夹
