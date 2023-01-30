@@ -25,7 +25,7 @@ jobs:
           LASTSSH: "Doing something after copying"
         with:
          host: ${{ secrets.USER_HOST }}
-         user: ${{ secrets.USER_USER }}
+         user: ${{ secrets.USER_NAME }}
          pass: ${{ secrets.USER_PASS }}
          connect_timeout: 10s
          local: '/dist/*' # 这里是下一步要创建的vue项目构建完成后的静态资源路径
