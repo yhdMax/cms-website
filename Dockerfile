@@ -5,7 +5,7 @@ RUN npm --version
 RUN node -v
 
 # 全局安装yarn
-RUN npm i -g yarn
+RUN npm i -g yarn --force
 
 # 设置淘宝镜像 和 node-sass镜像
 RUN npm config set registry https://registry.npmmirror.com
