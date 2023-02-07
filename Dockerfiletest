@@ -41,7 +41,7 @@ COPY . /data
 RUN npm run build
 
 # 打印
-RUN echo 'vue-next-admin 前端正式服 build done'
+RUN echo 'vue-next-admin 前端测试服 build done'
 
 
 # 启动一个nginx
