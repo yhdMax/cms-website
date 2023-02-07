@@ -80,7 +80,7 @@ const state = reactive({
 	ruleForm: {
 		userName: 'admin',
 		password: '123456',
-		code: '1234',
+		code: '123456',
 	},
 	loading: {
 		signIn: false,
