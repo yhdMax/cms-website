@@ -18,10 +18,13 @@
 				<span class="login-right-warp-one"></span>
 				<span class="login-right-warp-two"></span>
 				<div class="login-right-warp-mian">
-					<div class="login-right-warp-main-title">{{ getThemeConfig.globalTitle }} 欢迎您！</div>
+					<div class="login-right-warp-main-title">
+							<img :src="logoMini" />
+							<span>欢迎登录</span>
+					</div>
 					<div class="login-right-warp-main-form">
 						<div v-if="!state.isScan">
-							<el-tabs v-model="state.tabsActiveName">
+							<el-tabs v-model="state.tabsActiveName" stretch>
 								<el-tab-pane :label="$t('message.label.one1')" name="account">
 									<Account />
 								</el-tab-pane>
@@ -30,11 +33,12 @@
 								</el-tab-pane> -->
 							</el-tabs>
 						</div>
-						<Scan v-if="state.isScan" />
+						<!-- 二维码 -->
+						<!-- <Scan v-if="state.isScan" />
 						<div class="login-content-main-sacn" @click="state.isScan = !state.isScan">
 							<i class="iconfont" :class="state.isScan ? 'icon-diannao1' : 'icon-barcode-qr'"></i>
 							<div class="login-content-main-sacn-delta"></div>
-						</div>
+						</div> -->
 					</div>
 				</div>
 			</div>
@@ -52,7 +56,7 @@ import loginMain from '/@/assets/login-main.svg';
 import loginBg from '/@/assets/login-bg.svg';
 
 // 引入组件
-const Account = defineAsyncComponent(() => import('/@/views/login/component/account.vue'));
+const Account = defineAsyncComponent(() => import('/@/views/login/component/account/index.vue'));
 const Mobile = defineAsyncComponent(() => import('/@/views/login/component/mobile.vue'));
 const Scan = defineAsyncComponent(() => import('/@/views/login/component/scan.vue'));
 
@@ -207,6 +211,10 @@ onMounted(() => {
 					animation: logoAnimation 0.3s ease;
 					animation-delay: 0.3s;
 					color: var(--el-text-color-primary);
+					// logo style
+					display: flex;
+					align-items: center;
+					justify-content: center;
 				}
 				.login-right-warp-main-form {
 					flex: 1;

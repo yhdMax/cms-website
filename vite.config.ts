@@ -1,10 +1,10 @@
 /*
  * @Author       : Eug
  * @Date         : 2022-12-25 17:35:49
- * @LastEditTime : 2023-02-03 12:09:19
+ * @LastEditTime : 2023-02-08 17:57:40
  * @LastEditors  : Eug
  * @Descripttion : Descripttion
- * @FilePath     : /vue-next-admin/vite.config.ts
+ * @FilePath     : /github_vue_next_admin/vite.config.ts
  */
 import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
@@ -38,11 +38,10 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
 			open: env.VITE_OPEN,
 			hmr: true,
 			proxy: {
-				'/gitee': {
-					target: 'https://gitee.com',
+				'/api': {
+					target: 'http://192.168.1.104:9090',
 					ws: true,
 					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/gitee/, ''),
 				},
 			},
 		},

@@ -1,10 +1,10 @@
 /*
  * @Author       : Eug
  * @Date         : 2022-12-25 17:35:49
- * @LastEditTime : 2022-12-29 10:48:27
+ * @LastEditTime : 2023-02-09 11:43:02
  * @LastEditors  : Eug
  * @Descripttion : Descripttion
- * @FilePath     : /vue-next-admin/src/utils/request.ts
+ * @FilePath     : /github_vue_next_admin/src/utils/request.ts
  */
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -33,10 +33,9 @@ const logError = (err: Error) => {
 	// }
 }
 
-
 // 配置新建一个 axios 实例
 const service: AxiosInstance = axios.create({
-	baseURL: import.meta.env.APP_API,
+	baseURL: import.meta.env.VITE_APP_API,
 	timeout: 50000,
 	headers: { 'Content-Type': 'application/json' },
 	paramsSerializer: {
@@ -74,7 +73,7 @@ service.interceptors.response.use(
 	(response) => {
 		// 对响应数据做点什么
 		const res = response.data;
-		if (res.code && res.code !== 0) {
+		if (res.code && !String(res.code).includes('2')) {
 			// `token` 过期或者账号已在别处登录
 			if (res.code === 401 || res.code === 4001) {
 				Session.clear(); // 清除浏览器全部临时缓存

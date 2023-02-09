@@ -9,12 +9,12 @@ import { dynamicRoutes, notFoundAndNoPower } from '/@/router/route';
 import { formatTwoStageRoutes, formatFlatteningRoutes, router } from '/@/router/index';
 import { useRoutesList } from '/@/stores/routesList';
 import { useTagsViewRoutes } from '/@/stores/tagsViewRoutes';
-import { useMenuApi } from '/@/api/menu/index';
+import serverApi from '/@/api';
 
 // 后端控制路由
 
 // 引入 api 请求接口
-const menuApi = useMenuApi();
+// const menuApi = useMenuApi();
 
 /**
  * 获取目录下的 .vue、.tsx 全部文件
@@ -112,9 +112,9 @@ export function getBackEndControlRoutes() {
 	const { userInfos } = storeToRefs(stores);
 	const auth = userInfos.value.roles[0];
 	// 管理员 admin
-	if (auth === 'admin') return menuApi.getAdminMenu();
+	if (auth === 'admin') return serverApi.getAdminMenu();
 	// 其它用户 test
-	else return menuApi.getTestMenu();
+	else return serverApi.getTestMenu();
 }
 
 /**

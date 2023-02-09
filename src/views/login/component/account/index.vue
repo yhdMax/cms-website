@@ -1,13 +1,13 @@
 <template>
-	<el-form size="large" class="login-content-form">
-		<el-form-item class="login-animation1">
-			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.userName" clearable autocomplete="off">
+	<el-form size="large" class="login-content-form" :rules="state.formRules" ref="formRef" :model="state.ruleForm">
+		<el-form-item class="login-animation1" prop="name">
+			<el-input text :placeholder="$t('message.account.accountPlaceholder1')" v-model="state.ruleForm.name" clearable autocomplete="off">
 				<template #prefix>
 					<el-icon class="el-input__icon"><ele-User /></el-icon>
 				</template>
 			</el-input>
 		</el-form-item>
-		<el-form-item class="login-animation2">
+		<el-form-item class="login-animation2" prop="password">
 			<el-input
 				:type="state.isShowPassword ? 'text' : 'password'"
 				:placeholder="$t('message.account.accountPlaceholder2')"
@@ -27,7 +27,7 @@
 				</template>
 			</el-input>
 		</el-form-item>
-		<el-form-item class="login-animation3">
+		<el-form-item class="login-animation3" prop="code">
 			<el-col :span="15">
 				<el-input
 					text
@@ -36,6 +36,7 @@
 					v-model="state.ruleForm.code"
 					clearable
 					autocomplete="off"
+					@keydown.enter="onSignIn"
 				>
 					<template #prefix>
 						<el-icon class="el-input__icon"><ele-Position /></el-icon>
@@ -44,7 +45,9 @@
 			</el-col>
 			<el-col :span="1"></el-col>
 			<el-col :span="8">
-				<el-button class="login-content-code" v-waves>123412</el-button>
+				<el-button class="login-content-code" v-waves @click="useGetCaptcha">
+					<img :src="state.codeUrl" alt="" style="width: 100%; height: 100%;">
+				</el-button>
 			</el-col>
 		</el-form-item>
 		<el-form-item class="login-animation4">
@@ -56,9 +59,9 @@
 </template>
 
 <script setup lang="ts" name="loginAccount">
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref, getCurrentInstance } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElNotification, FormInstance } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import Cookies from 'js-cookie';
 import { storeToRefs } from 'pinia';
@@ -68,6 +71,7 @@ import { initBackEndControlRoutes } from '/@/router/backEnd';
 import { Session } from '/@/utils/storage';
 import { formatAxis } from '/@/utils/formatTime';
 import { NextLoading } from '/@/utils/loading';
+import serverApi from '/@/api'
 
 // 定义变量内容
 const { t } = useI18n();
@@ -75,39 +79,103 @@ const storesThemeConfig = useThemeConfig();
 const { themeConfig } = storeToRefs(storesThemeConfig);
 const route = useRoute();
 const router = useRouter();
+const formRef = ref<FormInstance>()
 const state = reactive({
 	isShowPassword: false,
 	ruleForm: {
-		userName: 'admin',
-		password: '123456',
-		code: '123456yhd',
+		name: 'admin',
+		password: '1234',
+		code: '',
 	},
+	formRules: {
+		name: [{ required: true, message: '用户名必填', trigger: 'blur' }],
+		password: [{ required: true, message: '用户密码必填', trigger: 'blur' }],
+		code: [{ required: true, message: '验证码必填', trigger: 'blur' }]
+	},
+	codeUrl: '',
 	loading: {
 		signIn: false,
 	},
 });
+const goobalProps = getCurrentInstance()?.appContext?.config?.globalProperties
+
+const useGetCaptcha = async () => {
+	try {
+		const res: any = await serverApi.GetCaptcha()
+		if (res) {
+			state.codeUrl = res
+		}
+	}catch (error) {
+		ElMessage.error('前端代码错误,请检查控制台')
+		console.log('Error:', error)
+	}
+}
+useGetCaptcha()
 
 // 时间获取
 const currentTime = computed(() => {
 	return formatAxis(new Date());
 });
+
+// 校验
+const FormValidate = (formEl: FormInstance | undefined) => {
+	if (!formEl) return
+	return new Promise((resolve) => {
+		formEl.validate((v) => {
+			resolve(v)
+		})
+	})
+}
+
+const useChangeLoadings = (isLoading: boolean) => {
+	state.loading.signIn = isLoading
+}
+
 // 登录
 const onSignIn = async () => {
-	state.loading.signIn = true;
-	// 存储 token 到浏览器缓存
-	Session.set('token', Math.random().toString(36).substr(0));
-	// 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
-	Cookies.set('userName', state.ruleForm.userName);
-	if (!themeConfig.value.isRequestRoutes) {
-		// 前端控制路由，2、请注意执行顺序
-		const isNoPower = await initFrontEndControlRoutes();
-		signInSuccess(isNoPower);
+	useChangeLoadings(true)
+	const isNil = await FormValidate(formRef.value)
+	if (isNil) {
+		try {
+			let res: any = await serverApi.SignIn(state.ruleForm)
+			if(res.code === 200) {
+					// 存储 token 到浏览器缓存
+					Session.set('token', res.result.token);
+					// 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
+					Cookies.set('userName', state.ruleForm.name);
+					if (!themeConfig.value.isRequestRoutes) {
+						// 前端控制路由，2、请注意执行顺序
+						const isNoPower = await initFrontEndControlRoutes();
+						signInSuccess(isNoPower);
+					} else {
+						// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
+						// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
+						const isNoPower = await initBackEndControlRoutes();
+						// 执行完 initBackEndControlRoutes，再执行 signInSuccess
+						signInSuccess(isNoPower);
+					}
+			} else if (res.code === 205) {
+				goobalProps.$notify.error({
+					title: "错误",
+					message: res.msg
+				})
+				useChangeLoadings(false)
+				useGetCaptcha()
+			} else {
+				ElNotification({
+					title: "错误",
+					message: res.msg,
+					type: 'error'
+				})
+				useChangeLoadings(false)
+			}
+		} catch(error) {
+			console.log('Error:', error)
+			useChangeLoadings(false)
+		}
 	} else {
-		// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
-		// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
-		const isNoPower = await initBackEndControlRoutes();
-		// 执行完 initBackEndControlRoutes，再执行 signInSuccess
-		signInSuccess(isNoPower);
+		ElMessage.error('校验不通过')
+		useChangeLoadings(false)
 	}
 };
 // 登录成功后的跳转

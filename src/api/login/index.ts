@@ -7,21 +7,33 @@ import request from '/@/utils/request';
  * @method signIn 用户登录
  * @method signOut 用户退出登录
  */
-export function useLoginApi() {
-	return {
-		signIn: (data: object) => {
-			return request({
-				url: '/user/signIn',
-				method: 'post',
-				data,
-			});
-		},
-		signOut: (data: object) => {
-			return request({
-				url: '/user/signOut',
-				method: 'post',
-				data,
-			});
-		},
-	};
+
+const Url = {
+	service: {
+		'getCaptcha': '/captcha',
+		'signin': '/login'
+	}
 }
+const requestServiceName = 'service'
+export default {
+	GetCaptcha () {
+		return request({
+			url: Url[requestServiceName].getCaptcha,
+			method: 'get'
+		})
+	},
+	SignIn(data: object) {
+		return request({
+			url: Url[requestServiceName].signin,
+			method: 'post',
+			data,
+		});
+	},
+	signOut: (data: object) => {
+		return request({
+			url: '/user/signOut',
+			method: 'post',
+			data,
+		});
+	},
+};
